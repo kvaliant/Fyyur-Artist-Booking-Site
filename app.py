@@ -43,7 +43,7 @@ class Venue(db.Model):
   state = db.Column(db.String(120))
   address = db.Column(db.String(120))
   phone = db.Column(db.String(120))
-  genres = db.Column(db.String(120))
+  genres = db.Column(db.ARRAY(db.String()))
   image_link = db.Column(db.String(500))
   facebook_link = db.Column(db.String(120))
 
@@ -62,7 +62,7 @@ class Artist(db.Model):
   city = db.Column(db.String(120))
   state = db.Column(db.String(120))
   phone = db.Column(db.String(120))
-  genres = db.Column(db.String(120))
+  genres = db.Column(db.ARRAY(db.String()))
   image_link = db.Column(db.String(500))
   facebook_link = db.Column(db.String(120))
 
@@ -142,7 +142,30 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # DONE: replace with real venue data from the venues table, using venue_id
-  data = Venue.query.filter_by(id=venue_id).first()
+  venue = Venue.query.filter_by(id=venue_id).first()
+  current_time = datetime.utcnow()
+  past_shows = Shows.query.filter(Shows.venue_id==venue_id, Shows.start_time < current_time).all()
+  past_shows_count = Shows.query.filter(Shows.venue_id==venue_id, Shows.start_time < current_time).count()
+  upcoming_shows = Shows.query.filter(Shows.venue_id==venue_id, Shows.start_time > current_time).all()
+  upcoming_shows_count = Shows.query.filter(Shows.venue_id==venue_id, Shows.start_time > current_time).count()
+  data= {
+    "id": venue.id,
+    "name": venue.name,
+    "genres": venue.genres,
+    "city": venue.city,
+    "state": venue.state,
+    "address": venue.address,
+    "phone": venue.phone,
+    "website": venue.website,
+    "facebook_link": venue.facebook_link,
+    "seeking_talent": venue.seeking_talent,
+    "seeking_description": venue.seeking_description,
+    "image_link": venue.image_link,
+    "past_shows": past_shows,
+    "upcoming_shows": upcoming_shows,
+    "past_shows_count": past_shows_count,
+    "upcoming_shows_count": upcoming_shows_count,
+  }
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -198,7 +221,29 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # DONE: replace with real venue data from the venues table, using venue_id
-  data= Artist.query.filter_by(id=artist_id).first()
+  artist = Artist.query.filter_by(id=artist_id).first()
+  current_time = datetime.utcnow()
+  past_shows = Shows.query.filter(Shows.artist_id==artist_id, Shows.start_time < current_time).all()
+  past_shows_count = Shows.query.filter(Shows.artist_id==artist_id, Shows.start_time < current_time).count()
+  upcoming_shows = Shows.query.filter(Shows.artist_id==artist_id, Shows.start_time > current_time).all()
+  upcoming_shows_count = Shows.query.filter(Shows.artist_id==artist_id, Shows.start_time > current_time).count()
+  data= {
+    "id": artist.id,
+    "name": artist.name,
+    "genres": artist.genres,
+    "city": artist.city,
+    "state": artist.state,
+    "phone": artist.phone,
+    "website": artist.website,
+    "facebook_link": artist.facebook_link,
+    "seeking_venue": artist.seeking_venue,
+    "seeking_description": artist.seeking_description,
+    "image_link": artist.image_link,
+    "past_shows": past_shows,
+    "upcoming_shows": upcoming_shows,
+    "past_shows_count": past_shows_count,
+    "upcoming_shows_count": upcoming_shows_count,
+  }
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
@@ -269,10 +314,32 @@ def create_artist_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+  
+  name = request.form['name']
+  city = request.form['city']
+  state = request.form['state']
+  phone = request.form['phone']
+  genres = request.form.getlist('genres')
+  facebook_link = request.form['facebook_link']
+  error = False
+  try:
+      artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
+      db.session.add(artist)
+      db.session.commit()
+  except:
+      db.session.rollback()
+      error = True
+      print(sys.exc_info())
+  finally:
+      db.session.close()    
+  if error:
+      abort (400)
+      # DONE: on unsuccessful db insert, flash an error instead.
+      flash('An error occurred. Artist ' + name + ' could not be listed.')
+  else:
+      # on successful db insert, flash success
+      flash('Artist ' + name + ' was successfully listed!')
+
   return render_template('pages/home.html')
 
 
@@ -299,14 +366,13 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead  
+  # DONE: insert form data as a new Show record in the db, instead  
 
   artist_id = request.form['artist_id']
   venue_id = request.form['venue_id']
   start_time = request.form['start_time']
   if(Artist.query.filter_by(id=artist_id).count() == 1 & Venue.query.filter_by(id=venue_id).count() == 1):
     error = False
-    body = {}
     try:
         show = Shows(artist_id = artist_id, venue_id = venue_id, start_time = start_time)
         db.session.add(show)
@@ -321,15 +387,12 @@ def create_show_submission():
         abort (400)
         flash('An error occurred. Show could not be listed.')
     else:
+        # on successful db insert, flash success
         flash('Show was successfully listed!')
   else:
     flash('An error occurred. Show could not be listed. invalid')
 
-
-  # on successful db insert, flash success
-  #flash('Show was successfully listed!')
-  
-  # TODO: on unsuccessful db insert, flash an error instead.
+  # DONE: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')

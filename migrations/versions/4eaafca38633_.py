@@ -32,10 +32,10 @@ def upgrade():
     op.drop_table('upcomingshows')
     op.drop_table('artist_genres')
     op.drop_table('genres')
-    op.add_column('artist', sa.Column('genres', sa.String(length=120), nullable=True))
+    op.add_column('artist', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     op.drop_column('artist', 'past_shows_count')
     op.drop_column('artist', 'upcoming_shows_count')
-    op.add_column('venue', sa.Column('genres', sa.String(length=120), nullable=True))
+    op.add_column('venue', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     op.drop_column('venue', 'past_shows_count')
     op.drop_column('venue', 'upcoming_shows_count')
     # ### end Alembic commands ###

@@ -21,7 +21,7 @@ shows3 = Shows(
 
 venue1 = Venue(
     name = "The Musical Hop",
-    genres = ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
+    genres = {"Jazz", "Reggae", "Swing", "Classical", "Folk"},
     address = "1015 Folsom Street",
     city = "San Francisco",
     state = "CA",
@@ -37,7 +37,7 @@ venue1.shows = [shows1]
 
 venue2 = Venue(
     name = "The Dueling Pianos Bar",
-    genres = ["Classical", "RnB", "HipHop"],
+    genres = {"Classical", "RnB", "HipHop"},
     address = "335 Delancey Street",
     city = "New York",
     state = "NY",
@@ -51,7 +51,7 @@ venue2 = Venue(
 
 venue3 = Venue(
     name = "Park Square Live Music & Coffee",
-    genres = ["Rock n Roll", "Jazz", "Classical", "Folk"],
+    genres = {"Rock n Roll", "Jazz", "Classical", "Folk"},
     address = "34 Whiskey Moore Ave",
     city = "San Francisco",
     state = "CA",
@@ -66,7 +66,7 @@ venue3.shows = [shows2, shows3]
 
 artist1 = Artist(
     name = "Guns N Petals",
-    genres = ["Rock n Roll"],
+    genres = {"Rock n Roll"},
     city = "San Francisco",
     state = "CA",
     phone = "326-123-5000",
@@ -80,7 +80,7 @@ artist1.shows = [shows1]
 
 artist2 = Artist(
     name = "Matt Quevedo",
-    genres = ["Jazz"],
+    genres = {"Jazz"},
     city = "New York",
     state = "NY",
     phone = "300-400-5000",
@@ -92,7 +92,7 @@ artist2.shows = [shows2]
 
 artist3= Artist(
     name = "The Wild Sax Band",
-    genres = ["Jazz", "Classical"],
+    genres = {"Jazz", "Classical"},
     city = "San Francisco",
     state = "CA",
     phone = "432-325-5432",
