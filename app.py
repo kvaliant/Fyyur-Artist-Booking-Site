@@ -218,7 +218,7 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
+  # TODO DONE: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
   venue = Venue.query.filter_by(id=venue_id).first()
@@ -351,12 +351,12 @@ def edit_artist_submission(artist_id):
 def edit_venue(venue_id):
   form = VenueForm()
   venue = Venue.query.filter_by(id=venue_id).first()
-  # TODO: populate form with values from venue with ID <venue_id>
+  # TODO DONE: populate form with values from venue with ID <venue_id>
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
+  # TODO DONE: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
 
   name = request.form['name']
@@ -454,7 +454,7 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  # TODO: replace with real venues data.
+  # TODO DONE: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
   data=Shows.query\
   .join(Artist, Shows.artist_id==Artist.id)\
