@@ -178,8 +178,8 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  # TODO DONE: insert form data as a new Venue record in the db, instead
+  # TODO DONE: modify data to be the data object returned from db insertion
 
   name = request.form['name']
   city = request.form['city']
@@ -220,6 +220,35 @@ def create_venue_submission():
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+
+  venue = Venue.query.filter_by(id=venue_id).first()
+  if(Venue.query.filter_by(id=venue_id).count() == 1):
+    name = venue.name
+  error = False
+  try:
+    #delete shows related to this venue
+    shows = Shows.query.filter_by(venue_id=venue_id).all()
+    for show in shows:
+      db.session.delete(show)
+    #delete this venue's area if area only contain this venue
+    area = Area.query.filter_by(id = venue.area_id).first()
+    if(Venue.query.filter_by(area_id=area.id).count() == 1):
+      db.session.delete(area)
+    db.session.delete(venue)
+    db.session.commit()
+  except:
+    db.session.rollback()
+    error = True
+  finally:
+    db.session.close()    
+  if error:
+    # TODO DONE: on unsuccessful db insert, flash an error instead.
+    flash('An error occurred.')
+  else:
+    # on successful db insert, flash success
+    flash('Venue ' + name + ' was successfully deleted!')
+
+  return render_template('pages/home.html')
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -279,46 +308,49 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # TODO: populate form with fields from artist with ID <artist_id>
+  artist=Artist.query.filter_by(id=artist_id).first()
+  # TODO DONE: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
+  # TODO DONE: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+
+  name = request.form['name']
+  city = request.form['city']
+  state = request.form['state']
+  phone = request.form['phone']
+  genres = request.form.getlist('genres')
+  facebook_link = request.form['facebook_link']
+  error = False
+  try:
+      artist = Artist.query.filter_by(id=artist_id).first()
+      artist.name = name
+      artist.city = city
+      artist.state = state
+      artist.phone = phone
+      artist.genres = genres
+      artist.facebook_link = facebook_link
+      db.session.commit()
+  except:
+      db.session.rollback()
+      error = True
+  finally:
+      db.session.close()    
+  if error:
+      # on unsuccessful db insert, flash an error instead.
+      flash('An error occurred.')
+  else:
+      # on successful db insert, flash success
+      flash('Artist ' + name + ' was successfully edited!')
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
+  venue = Venue.query.filter_by(id=venue_id).first()
   # TODO: populate form with values from venue with ID <venue_id>
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
@@ -326,6 +358,54 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+
+  name = request.form['name']
+  city = request.form['city']
+  state = request.form['state']
+  address = request.form['address']
+  phone = request.form['phone']
+  genres = request.form.getlist('genres')
+  facebook_link = request.form['facebook_link']
+  error = False
+  try:
+    venue = Venue.query.filter_by(id=venue_id).first()
+    # if city/ state (area) changed
+    if(venue.city != city):
+      # Declare previous area for delete later
+      prev_area = Area.query.filter_by(id = venue.area_id).first()
+      # What todo with new area
+      if(Area.query.filter_by(city=city, state=state).count() == 1):
+        #if area exist
+        area_id = Area.query.filter_by(city=city, state=state).first().id
+        venue.area_id = area_id
+      else:
+        area = Area(city= city, state= state)   
+        db.session.add(area)
+        area_id = Area.query.filter_by(city=city, state=state).first().id        
+        venue.area_id = area_id
+      # Only delete prev_area after changes
+      if(Venue.query.filter_by(area_id=prev_area.id).count() == 0):
+        db.session.delete(prev_area)
+    venue.name = name
+    venue.city = city
+    venue.state = state
+    venue.phone = phone
+    venue.genres = genres
+    venue.facebook_link = facebook_link
+    db.session.commit()
+  except:
+    db.session.rollback()
+    error = True
+  finally:
+    db.session.close()    
+  if error:
+    # on unsuccessful db insert, flash an error instead.
+    flash('An error occurred.')
+  else:
+    # on successful db insert, flash success
+    flash('Venue ' + name + ' was successfully edited!')
+
+
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist

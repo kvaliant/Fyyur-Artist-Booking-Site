@@ -63,7 +63,7 @@
 <section>
 	<h2 class="monospace">{{ venue.past_shows_count }} Past {% if venue.past_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in venue.past_shows %}
+		{% for show in venue.past_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img src="{{ show.artist.image_link }}" alt="Show Artist Image" />
@@ -76,4 +76,3 @@
 </section>
 
 {% endblock %}
-
