@@ -121,24 +121,15 @@ def create_venue_submission():
   # TODO DONE: insert form data as a new Venue record in the db, instead
   # TODO DONE: modify data to be the data object returned from db insertion
 
-  name = request.form['name']
-  city = request.form['city']
-  state = request.form['state']
-  address = request.form['address']
-  phone = request.form['phone']
-  try:
-    if(request.form['seeking_talent'] == 'y'):
-      seeking_talent = True
-  except:
-    seeking_talent = False
-  seeking_description = request.form['seeking_description']
-  genres = request.form.getlist('genres')
-  image_link = request.form['image_link']
-  website = request.form['website']
-  facebook_link = request.form['facebook_link']
+  form = VenueForm(request.form)
+  name = form.name.data
+  city = form.city.data
+  state = form.state.data
   error = False
   try:
-      venue = Venue(name=name, city=city, state=state, address=address, phone=phone, seeking_talent=seeking_talent, seeking_description=seeking_description, genres=genres, facebook_link=facebook_link, website=website, image_link=image_link)
+      #venue = Venue(name=name, city=city, state=state, address=address, phone=phone, seeking_talent=seeking_talent, seeking_description=seeking_description, genres=genres, facebook_link=facebook_link, website=website, image_link=image_link)
+      venue = Venue()
+      form.populate_obj(venue)
       if(Area.query.filter_by(city=city, state=state).count() == 1):
         #if area exist
         area_id = Area.query.filter_by(city=city, state=state).first().id
@@ -264,7 +255,7 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO DONE: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
+  
   name = request.form['name']
   city = request.form['city']
   state = request.form['state']
@@ -394,23 +385,12 @@ def create_artist_submission():
   # TODO DONE: insert form data as a new Venue record in the db, instead
   # TODO DONE: modify data to be the data object returned from db insertion
 
-  name = request.form['name']
-  city = request.form['city']
-  state = request.form['state']
-  phone = request.form['phone']
-  try:
-    if(request.form['seeking_venue'] == 'y'):
-      seeking_venue = True
-  except:
-    seeking_venue = False
-  seeking_description = request.form['seeking_description']
-  genres = request.form.getlist('genres')
-  image_link = request.form['image_link']
-  facebook_link = request.form['facebook_link']
-  website = request.form['website']
+  form = VenueForm(request.form)
+  name = form.name
   error = False
   try:
-      artist = Artist(name=name, city=city, state=state, phone=phone, seeking_venue=seeking_venue, seeking_description=seeking_description, genres=genres, facebook_link=facebook_link, website=website, , image_link=image_link)
+      artist = Artist()
+      form.populate_obj(artist)
       db.session.add(artist)
       db.session.commit()
   except:
