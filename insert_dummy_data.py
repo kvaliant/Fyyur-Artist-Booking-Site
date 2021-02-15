@@ -1,4 +1,4 @@
-from app import db, Venue, Artist, Shows, Area
+from models import db, Venue, Artist, Shows, Area
 
 area1 = Area(
     city = "San Francisco",
